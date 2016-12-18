@@ -1,0 +1,48 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<!--<link rel="import" href="../bower_components/polymerfire/polymerfire.html">-->
+
+
+<dom-module id="my-new-view">
+  <!-- Defines the element's style and local DOM -->
+  <template>
+    <style>
+    </style>
+
+ <firebase-auth
+        id="auth"
+        app-name="lifeMite"
+        provider="google"
+        signed-in="{{signedIn}}"
+        user="{{user}}">
+    </firebase-auth>
+
+    <paper-button raised class="indigo" on-tap="signIn">raised</paper-button>
+
+  </template>
+  <!-- Creates the element's prototype and registers it -->
+  <script>
+      (function() {
+      'use strict';
+
+        Polymer({
+          is: 'my-new-view',
+          // signedIn: {
+          //     type: Boolean,
+          //     value: false,
+          //     notify: true,
+          //     reflectToAttribute: false
+          // },
+          // statusKnown: {
+          //     type: Boolean,
+          //     value: false,
+          //     notify: true,
+          //     reflectToAttribute: false
+          // },
+          signIn: function() {
+              this.$.auth.signInWithPopup();
+            }
+        });
+      })();
+  </script>
+</dom-module>

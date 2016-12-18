@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": false,
+    "noEmit": true,
+    "compileOnSave": false
+  },
+  "include": [
+    "/bower_components/babylonjs/dist/babylon.2.5.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
