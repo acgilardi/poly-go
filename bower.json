@@ -20,10 +20,8 @@
     "iron-icons": "PolymerElements/iron-icons#^1.2.0",
     "polymerfire": "firebase/polymerfire#^0.10.3",
     "paper-button": "PolymerElements/paper-button#^1.0.14",
-    "htmlgl": "^0.3.1",
-    "threejs": "*",
-    "three-import": "^82.0.0",
-    "babylonjs": "^2.5.0"
+    "babylonjs": "^2.5.0",
+    "pixi.js": "^4.3.0"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"

@@ -1,0 +1,287 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<!--<script src="./bower_components/pixi.js/dist/pixi.js"></script>-->
+<link rel="import" href="../vendor/pixijs.html">
+
+<dom-module id="puzzle-slider">
+    <template>
+        <style>
+            :host {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+
+        <div id="gameZone"></div>
+        <pixjs></pixjs>
+
+    </template>
+
+    <script>
+        (function() {
+            Polymer({
+                is: 'puzzle-slider',
+                properties: {
+                    user: String,
+                    containerWidth: {
+                        type: Number,
+                        observer: 'widthChanged'
+                    },
+                    padding: {
+                      type: Number
+                    },
+                    gridWidth: {
+                        type: Number
+                    },
+                    hasBlank: {
+                        type: Boolean
+                    }
+                },
+                colors: {
+                    red: 0xC41E3A,
+                    blue: 0x0051BA,
+                    green: 0x009E60,
+                    white: 0xFFFFFF,
+                    orange: 0xFF5800,
+                    yellow: 0xFFD500,
+                    black: 0x000000
+                },
+                colorName: function(index) {
+                    switch(index) {
+                        case 0:
+                            return 'black';
+                        case 1:
+                            return 'blue';
+                        case 2:
+                            return 'green';
+                        case 3:
+                            return 'white';
+                        case 4:
+                            return 'orange';
+                        case 5:
+                            return 'yellow';
+                        case 6:
+                            return 'red';
+                    }
+                },
+                shuffle: function(array) {
+                    var j, x, i;
+                    for (i = array.length; i; i--) {
+                        j = Math.floor(Math.random() * i);
+                        x = array[i - 1];
+                        array[i - 1] = array[j];
+                        array[j] = x;
+                    }
+                },
+                initializeBoard: function(gridWidth) {
+                    var _this = this;
+
+                    // get the blank spot
+                    var boardElements = gridWidth * gridWidth;
+
+                    if(_this.hasBlank) {
+                        _this.blankspot = Math.floor(Math.random() * boardElements);
+                        console.log(_this.blankspot);
+                    }
+
+                    var boardArray = new Array(boardElements);
+                    boardArray = Array.from(boardArray.keys());
+                    this.shuffle(boardArray);
+
+                    var newBoardArray = new Array(boardElements);
+
+                    var currentColor = 1;
+                    boardArray.forEach(function(item, index) {
+
+                        var currentColorName = _this.colorName(currentColor);
+                        if(index === _this.blankspot) {
+                            currentColorName = _this.colorName(0);
+                        }
+
+                        newBoardArray[item] = currentColorName;
+
+                        currentColor += 1;
+                        if(currentColor > 6) {
+                            currentColor = 1;
+                        }
+                    });
+
+                    return newBoardArray;
+                },
+                widthChanged: function(oldVal, newVal) {
+                    //this.containerWidth = newVal;
+                    var _this = this;
+
+                    var colors = {
+                        red: 0xC41E3A,
+                        blue: 0x0051BA,
+                        green: 0x009E60,
+                        white: 0xFFFFFF,
+                        orange: 0xFF5800,
+                        yellow: 0xFFD500,
+                        black: 0x000000
+                    };
+                    var board = this.initializeBoard(this.gridWidth);
+                    var totalPadding = (this.gridWidth + 1) * this.padding;
+                    this.boxSize = (this.containerWidth - totalPadding) / this.gridWidth;
+
+                    var renderer = new PIXI.WebGLRenderer(this.containerWidth, this.containerWidth);
+
+                    this.$.gameZone.appendChild(renderer.view);
+                    var stage = new PIXI.Container();
+
+                    this.drawBoard(stage, board, colors);
+
+                    // kick off the animation loop (defined below)
+                    animate();
+
+                    function animate() {
+                        // start the timer for the next animation loop
+                        requestAnimationFrame(animate);
+
+                        // each frame we spin the bunny around a bit
+                        //bunny.rotation += 0.01;
+
+                        // this is the main render call that makes pixi draw your container and its children.
+                        renderer.render(stage);
+                    }
+                },
+                drawBoard: function(stage, board, colors) {
+                    var _this = this;
+                    var startX = this.padding;
+                    var startY = this.padding;
+                    var rectCurrentX = startX;
+                    var rectCurrentY = startY;
+
+                    board.forEach(function(boxColorName, index) {
+
+                        var boxColor = colors[boxColorName];
+                        var texture = PIXI.Texture.fromImage('images/white_square.png');
+                        var square = new PIXI.Sprite(texture);
+                        square.tint = boxColor;
+                        square.position.x = rectCurrentX;
+                        square.position.y = rectCurrentY;
+                        square.width = _this.boxSize;
+                        square.height = _this.boxSize;
+                        square.interactive = true;
+                        square.color = boxColor;
+                        square.number = index;
+
+                        // event handlers
+                        square.touchend = _this.touched.bind(_this);
+                        square.click = _this.touched.bind(_this);
+
+                        if(boxColor === colors.black) {
+                            _this.blankspotObj = square;
+                        }
+
+                        stage.addChild(square);
+
+                        rectCurrentX += _this.boxSize + _this.padding;
+                        if( (index + 1) % _this.gridWidth === 0) {
+                            rectCurrentX = startX;
+                            rectCurrentY += _this.boxSize + _this.padding;
+                        }
+                    });
+
+//                    board.forEach(function(row, index) {
+//
+//                        row.forEach(function(col, idx) {
+//
+//                            var randomColor = Math.floor((Math.random() * 6) + 1);
+//                            var boxColor = colors.red;
+//
+//                            if(count === _this.blankspot) {
+//                                boxColor = colors.black;
+//                            } else {
+//                                switch(randomColor) {
+//                                    case 1:
+//                                        boxColor = colors.blue;
+//                                        break;
+//                                    case 2:
+//                                        boxColor = colors.green;
+//                                        break;
+//                                    case 3:
+//                                        boxColor = colors.white;
+//                                        break;
+//                                    case 4:
+//                                        boxColor = colors.yellow;
+//                                        break;
+//                                    case 5:
+//                                        boxColor = colors.orange;
+//                                        break;
+//                                }
+//                            }
+//
+//                            // create a texture from an image path
+//                            var texture = PIXI.Texture.fromImage('images/white_square.png');
+//                            var square = new PIXI.Sprite(texture);
+//                            square.tint = boxColor;
+//                            square.position.x = rectCurrentX;
+//                            square.position.y = rectCurrentY;
+//                            square.width = _this.boxSize;
+//                            square.height = _this.boxSize;
+//                            square.interactive = true;
+//
+//                            square.color = boxColor;
+//                            square.number = count;
+//
+//                            square.touchend = _this.touched.bind(_this);
+//                            square.click = _this.touched.bind(_this);
+//
+//
+//                            if(boxColor === colors.black) {
+//                                _this.blankspotObj = square;
+//                            }
+//
+//                            stage.addChild(square);
+//
+//                            rectCurrentX += _this.boxSize + _this.padding;
+//
+//                            count += 1;
+//                        });
+//
+//                        rectCurrentX = startX;
+//                        rectCurrentY += _this.boxSize + _this.padding;
+//
+//                    });
+                },
+                checkMoveOpenSpot: function() {
+
+                },
+                touched: function(e) {
+                    var selectedBox = e.currentTarget;
+                    var selectedNumber = selectedBox.number;
+                    var up = selectedNumber - this.gridWidth;
+                    var down = selectedNumber + this.gridWidth;
+                    var left = selectedNumber - 1;
+                    var right = selectedNumber + 1;
+
+                    console.log(selectedBox.color);
+                    console.log(selectedBox.number);
+
+                    if(up === this.blankspot || down === this.blankspot || left === this. blankspot ||
+                            right === this.blankspot)
+                    {
+                        var holdX = selectedBox.position.x;
+                        var holdY = selectedBox.position.y;
+
+                        selectedBox.position.x = this.blankspotObj.position.x;
+                        selectedBox.position.y = this.blankspotObj.position.y;
+                        selectedBox.number = this.blankspotObj.number;
+
+                        this.blankspotObj.position.x = holdX;
+                        this.blankspotObj.position.y = holdY;
+                        this.blankspotObj.number = selectedNumber;
+                        this.blankspot = selectedNumber;
+                    }
+
+                    console.log('move left: ' + left);
+                    console.log('move right: ' + right);
+                    console.log('move up: ' + up);
+                    console.log('move down: ' + down);
+                }
+            });
+        })();
+    </script>
+</dom-module>
